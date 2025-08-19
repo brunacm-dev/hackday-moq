@@ -6,6 +6,15 @@
   <title>Projeto TypeScript Web</title>
   <link rel="stylesheet" href="/src/style.css" />
 </head>
+<style>
+
+    #player-container {
+      width: 80vw;
+      max-width: 800px;
+      height: 450px;
+      margin-top: 2rem;
+    }
+  </style>
 <body>
   <hang-support mode="watch" show="partial"></hang-support>
 
@@ -14,11 +23,35 @@
     <p>Página criada com Vite, TypeScript e SolidJS</p>
     
     <!-- Elemento hang-watch que será usado pela biblioteca @kixelated/hang -->
-    <hang-watch muted controls latency="100">
+    <!-- <hang-watch muted controls latency="100">
 		<canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
-	</hang-watch>
+	</hang-watch> -->
+  <div id="player-container"></div>
 
   </div>
-  <script type="module" src="/src/main.ts"></script>
+  <!-- <script type="module" src="/src/main.ts"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
+  <script src="/hang-test/src/hang-playback.js"></script>
+  <script>
+    Clappr.Log.setLevel(0)
+    const player = new Clappr.Player({
+      parentId: '#player-container',
+      source: "teste.hang",
+      // Register our plugin.  Clappr will call MoqPlayback.canPlay
+      // during startup to select the appropriate playback.
+      playbackPlugins: [ window.HangPlayback ],
+      // Optional: start muted to avoid autoplay restrictions on some browsers.
+      // muted: true,
+      // Additional options for the MoQ plugin.  The canvas size can be
+      // specified here; if omitted the element will fill the player.
+      // moqOptions: {
+      //   width: 640,
+      //   height: 360,
+      // },
+      // Clappr UI customisation
+      height: '100%',
+      width: '100%',
+    });
+  </script>
 </body>
 </html>
