@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projeto TypeScript Web</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <hang-support mode="watch" show="partial"></hang-support>
+
+  <div id="app">
+    <h1>Projeto Web com TypeScript</h1>
+    <p>Página criada com Vite, TypeScript e SolidJS</p>
+    
+    <!-- Elemento hang-watch que será usado pela biblioteca @kixelated/hang -->
+    <hang-watch muted controls latency="100">
+		<canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
+	</hang-watch>
+
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
