@@ -3,51 +3,238 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Projeto TypeScript Web</title>
-  <link rel="stylesheet" href="/src/style.css" />
-</head>
-<style>
-
+  <title>Clappr Custom Playback Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+    
     #player-container {
-      width: 80vw;
-      max-width: 800px;
+      width: 800px;
       height: 450px;
-      margin-top: 2rem;
+      margin: 20px auto;
+      background: #000;
+      border-radius: 8px;
+    }
+    
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
     }
   </style>
+</head>
 <body>
-  <hang-support mode="watch" show="partial"></hang-support>
-
-  <div id="app">
-    <h1>Projeto Web com TypeScript</h1>
-    <p>Página criada com Vite, TypeScript e SolidJS</p>
-    
-    <!-- Elemento hang-watch que será usado pela biblioteca @kixelated/hang -->
-    <!-- <hang-watch muted controls latency="100">
-		<canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
-	</hang-watch> -->
+  <h1>Clappr Custom Playback Demo</h1>
+  <p>Este exemplo demonstra um playback customizado que é selecionado para arquivos .abcde</p>
+  
+  <div class="controls">
+    <button onclick="loadCustomFile()">Carregar arquivo .abcde</button>
+    <button onclick="loadNormalFile()">Carregar arquivo normal (.mp4)</button>
+  </div>
+  
   <div id="player-container"></div>
 
-  </div>
-  <!-- <script type="module" src="/src/main.ts"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
-  <!-- <script src="/hang-test/src/hang-playback.js"></script> -->
-  <script type="module">
-    import HangPlayback from '/src/hang-playback.js';
+  <script>
+    // Custom Playback que é selecionado para arquivos .abcde
+    class CustomPlayback extends Clappr.Playback {
+      
+      get name() {
+        return 'custom_abcde_playback';
+      }
 
-    // Clappr.Log.setLevel(0)
-    // var playerElement = document.getElementById("player-container");
-    const player = new Clappr.Player({
-      parentId: '#player-container',
-      source: "teste.hang",
-      // Register our plugin.  Clappr will call MoqPlayback.canPlay
-      // during startup to select the appropriate playback.
-      playbackPlugins: [ HangPlayback ],
-      // muted: true,
-      height: '100%',
-      width: '100%',
+      // Este método define quando este playback será usado
+      static canPlay(resource, mimeType = '') {
+        console.log('Checking canPlay for:', resource);
+        const canPlayThis = resource.endsWith('.abcde');
+        console.log('Can play .abcde file:', canPlayThis);
+        return canPlayThis;
+      }
+
+      render() {
+        console.log('CustomPlayback: renderizando para source:', this.options.src);
+        
+        // Criar um elemento customizado em vez de <video>
+        this._customElement = document.createElement('div');
+        this._customElement.style.cssText = `
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          color: white;
+          font-family: Arial, sans-serif;
+          text-align: center;
+        `;
+        
+        this._customElement.innerHTML = `
+          <h2>Custom Playback Ativo!</h2>
+          <p>Arquivo: ${this.options.src}</p>
+          <p>Este é um playback customizado para arquivos .abcde</p>
+          <div style="margin-top: 20px;">
+            <div id="play-indicator" style="font-size: 24px;">⏸️ Parado</div>
+          </div>
+        `;
+
+        // Adicionar o elemento ao container do Clappr
+        this.$el.append(this._customElement);
+
+        this._isPlaying = false;
+        this._currentTime = 0;
+        this._duration = 60; // 60 segundos fictícios
+
+        return this;
+      }
+
+      play() {
+        console.log('CustomPlayback: play()');
+        this._isPlaying = true;
+        
+        const indicator = this._customElement.querySelector('#play-indicator');
+        if (indicator) {
+          indicator.textContent = '▶️ Reproduzindo';
+        }
+        
+        // Simular progresso do tempo
+        this._startTimer();
+        
+        // Disparar evento do Clappr
+        this.trigger(Clappr.Events.PLAYBACK_PLAY);
+      }
+
+      pause() {
+        console.log('CustomPlayback: pause()');
+        this._isPlaying = false;
+        
+        const indicator = this._customElement.querySelector('#play-indicator');
+        if (indicator) {
+          indicator.textContent = '⏸️ Pausado';
+        }
+        
+        this._stopTimer();
+        
+        // Disparar evento do Clappr
+        this.trigger(Clappr.Events.PLAYBACK_PAUSE);
+      }
+
+      stop() {
+        console.log('CustomPlayback: stop()');
+        this._isPlaying = false;
+        this._currentTime = 0;
+        
+        const indicator = this._customElement.querySelector('#play-indicator');
+        if (indicator) {
+          indicator.textContent = '⏹️ Parado';
+        }
+        
+        this._stopTimer();
+        
+        // Disparar evento do Clappr
+        this.trigger(Clappr.Events.PLAYBACK_STOP);
+      }
+
+      seek(timeInSeconds) {
+        console.log('CustomPlayback: seek to', timeInSeconds);
+        this._currentTime = timeInSeconds;
+        this.trigger(Clappr.Events.PLAYBACK_TIMEUPDATE, {
+          current: this._currentTime,
+          total: this._duration
+        });
+      }
+
+      get duration() {
+        return this._duration;
+      }
+
+      get currentTime() {
+        return this._currentTime;
+      }
+      
+      get isPlaying() {
+        return this._isPlaying;
+      }
+
+      _startTimer() {
+        this._stopTimer();
+        this._timer = setInterval(() => {
+          if (this._isPlaying && this._currentTime < this._duration) {
+            this._currentTime += 1;
+            this.trigger(Clappr.Events.PLAYBACK_TIMEUPDATE, {
+              current: this._currentTime,
+              total: this._duration
+            });
+            
+            if (this._currentTime >= this._duration) {
+              this.stop();
+              this.trigger(Clappr.Events.PLAYBACK_ENDED);
+            }
+          }
+        }, 1000);
+      }
+
+      _stopTimer() {
+        if (this._timer) {
+          clearInterval(this._timer);
+          this._timer = null;
+        }
+      }
+
+      destroy() {
+        this._stopTimer();
+        if (this._customElement) {
+          this._customElement.remove();
+        }
+        super.destroy();
+      }
+    }
+
+    // Inicializar player
+    let player;
+
+    function initPlayer(source) {
+      // Destruir player anterior se existir
+      if (player) {
+        player.destroy();
+      }
+
+      console.log('Inicializando player com source:', source);
+
+      player = new Clappr.Player({
+        parentId: '#player-container',
+        source: source,
+        playback: {
+          controls: true
+        },
+        // Registrar nosso playback customizado
+        playbackPlugins: [CustomPlayback],
+        height: '100%',
+        width: '100%',
+      });
+    }
+
+    function loadCustomFile() {
+      initPlayer('exemplo.abcde');
+    }
+
+    function loadNormalFile() {
+      initPlayer('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+    }
+
+    // Carregar arquivo customizado por padrão
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCustomFile();
     });
-    // player.attachTo(playerElement);
   </script>
 </body>
 </html>
