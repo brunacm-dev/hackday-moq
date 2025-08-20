@@ -1,11 +1,8 @@
-// import {Playback /*, Log, Events, PlayerError*/} from 'clappr'
-
-// import { Playback, Events } from '@clappr/core';
 const { Playback, Events } = Clappr;
 
 import HangWatch from "@kixelated/hang/watch/element";
 
-// export { HangWatch, HangSupport };
+export { HangWatch};
 
 export default class HangPlayback extends Playback {
 
@@ -22,14 +19,10 @@ export default class HangPlayback extends Playback {
   _ensureCustomElementRegistered() {
     try {
       if (!customElements.get('hang-watch')) {
-        console.log('Registrando custom element hang-watch...');
         customElements.define('hang-watch', HangWatch);
-        console.log('Custom element hang-watch registrado com sucesso!');
-      } else {
-        console.log('Custom element hang-watch já estava registrado');
       }
     } catch (error) {
-      console.error('Erro ao registrar custom element:', error);
+      console.error('Erro ao registrar custom element (hang-watch):', error);
     }
   }
 
@@ -42,67 +35,17 @@ export default class HangPlayback extends Playback {
   render() {
     this.el.style.width = '100%';
     this.el.style.height = '100%';
-    this.el.style.color = 'red';
+   
+    this.el.innerHTML = `
+      <hang-watch url="${this.options.source}" muted controls latency="100">
+        <canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
+      </hang-watch>
+    `;
 
-    const watch = new HangWatch()
-    
-    var canvas = document.createElement('canvas');
+    this._hang = this.el.querySelector('hang-watch');
 
-    canvas.style.maxWidth = '100%';
-    canvas.style.height = 'auto';
-    canvas.style.borderRadius = '4px';
-    canvas.style.margin = '0 auto';
-    watch.append(canvas);
-
-    this.el.append(watch);
-
-    if (watch) {
-        watch.setAttribute("url", `http://localhost:4443/demo/bbb.hang`);
-        console.log('Elemento hang-watch configurado com sucesso!');
-    } else {
-        console.warn('Elemento hang-watch não encontrado');
-    }
-
-    // É importante retornar `this` no final do render.
-    return this;
+    return super.render();
   }
-
-  play() {
-    // TODO: Implemente a lógica para dar play na sua tag.
-    
-    this.trigger(Events.PLAYBACK_PLAY);
-  }
-
-  pause() {
-    // TODO: Implemente a lógica para pausar sua tag.
-    
-    this.trigger(Events.PLAYBACK_PAUSE);
-  }
-
-  stop() {
-    // TODO: Implemente a lógica para parar a reprodução e voltar ao início.
-    
-    this.trigger(Events.PLAYBACK_STOP);
-  }
-
-  seek(timeInSeconds) {
-    
-  }
-
-  get duration() {
-    return 0;
-  }
-
-  get currentTime() {
-    // TODO: Retorne o tempo atual da reprodução em segundos.
-    
-    return 0;
-  }
-  
-  // get isPlaying() {
-  //   // TODO: Retorne `true` se a mídia estiver tocando, senão `false`.
-  //   return false;
-  // }
 
   destroy() {
     super.destroy();
