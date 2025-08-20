@@ -42,7 +42,9 @@
       source: "teste.hang",
       // Register our plugin.  Clappr will call MoqPlayback.canPlay
       // during startup to select the appropriate playback.
-      playbackPlugins: [ HangPlayback ],
+      plugins: {
+        playback: [ HangPlayback ],
+      },
       // muted: true,
       height: '100%',
       width: '100%',
