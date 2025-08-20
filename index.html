@@ -45,8 +45,17 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
   <script>
+    console.log('📦 Clappr carregado:', typeof Clappr);
+    console.log('📦 Clappr.Playback disponível:', typeof Clappr.Playback);
+    console.log(Clappr.Playback);
+    
     // Custom Playback que é selecionado para arquivos .abcde
     class CustomPlayback extends Clappr.Playback {
+      
+      constructor(options) {
+        console.log('🏗️ CustomPlayback constructor chamado com options:', options);
+        super(options);
+      }
       
       get name() {
         return 'custom_abcde_playback';
@@ -54,9 +63,9 @@
 
       // Este método define quando este playback será usado
       static canPlay(resource, mimeType = '') {
-        console.log('Checking canPlay for:', resource);
+        console.log('🔍 CustomPlayback.canPlay() chamado para:', resource, 'mimeType:', mimeType);
         const canPlayThis = resource.endsWith('.abcde');
-        console.log('Can play .abcde file:', canPlayThis);
+        console.log('✅ Can play .abcde file:', canPlayThis);
         return canPlayThis;
       }
 
@@ -97,107 +106,110 @@
         return this;
       }
 
-      play() {
-        console.log('CustomPlayback: play()');
-        this._isPlaying = true;
+      // play() {
+      //   console.log('CustomPlayback: play()');
+      //   this._isPlaying = true;
         
-        const indicator = this._customElement.querySelector('#play-indicator');
-        if (indicator) {
-          indicator.textContent = '▶️ Reproduzindo';
-        }
+      //   const indicator = this._customElement.querySelector('#play-indicator');
+      //   if (indicator) {
+      //     indicator.textContent = '▶️ Reproduzindo';
+      //   }
         
-        // Simular progresso do tempo
-        this._startTimer();
+      //   // Simular progresso do tempo
+      //   this._startTimer();
         
-        // Disparar evento do Clappr
-        this.trigger(Clappr.Events.PLAYBACK_PLAY);
-      }
+      //   // Disparar evento do Clappr
+      //   this.trigger(Clappr.Events.PLAYBACK_PLAY);
+      // }
 
-      pause() {
-        console.log('CustomPlayback: pause()');
-        this._isPlaying = false;
+      // pause() {
+      //   console.log('CustomPlayback: pause()');
+      //   this._isPlaying = false;
         
-        const indicator = this._customElement.querySelector('#play-indicator');
-        if (indicator) {
-          indicator.textContent = '⏸️ Pausado';
-        }
+      //   const indicator = this._customElement.querySelector('#play-indicator');
+      //   if (indicator) {
+      //     indicator.textContent = '⏸️ Pausado';
+      //   }
         
-        this._stopTimer();
+      //   this._stopTimer();
         
-        // Disparar evento do Clappr
-        this.trigger(Clappr.Events.PLAYBACK_PAUSE);
-      }
+      //   // Disparar evento do Clappr
+      //   this.trigger(Clappr.Events.PLAYBACK_PAUSE);
+      // }
 
-      stop() {
-        console.log('CustomPlayback: stop()');
-        this._isPlaying = false;
-        this._currentTime = 0;
+      // stop() {
+      //   console.log('CustomPlayback: stop()');
+      //   this._isPlaying = false;
+      //   this._currentTime = 0;
         
-        const indicator = this._customElement.querySelector('#play-indicator');
-        if (indicator) {
-          indicator.textContent = '⏹️ Parado';
-        }
+      //   const indicator = this._customElement.querySelector('#play-indicator');
+      //   if (indicator) {
+      //     indicator.textContent = '⏹️ Parado';
+      //   }
         
-        this._stopTimer();
+      //   this._stopTimer();
         
-        // Disparar evento do Clappr
-        this.trigger(Clappr.Events.PLAYBACK_STOP);
-      }
+      //   // Disparar evento do Clappr
+      //   this.trigger(Clappr.Events.PLAYBACK_STOP);
+      // }
 
-      seek(timeInSeconds) {
-        console.log('CustomPlayback: seek to', timeInSeconds);
-        this._currentTime = timeInSeconds;
-        this.trigger(Clappr.Events.PLAYBACK_TIMEUPDATE, {
-          current: this._currentTime,
-          total: this._duration
-        });
-      }
+      // seek(timeInSeconds) {
+      //   console.log('CustomPlayback: seek to', timeInSeconds);
+      //   this._currentTime = timeInSeconds;
+      //   this.trigger(Clappr.Events.PLAYBACK_TIMEUPDATE, {
+      //     current: this._currentTime,
+      //     total: this._duration
+      //   });
+      // }
 
-      get duration() {
-        return this._duration;
-      }
+      // get duration() {
+      //   return this._duration;
+      // }
 
-      get currentTime() {
-        return this._currentTime;
-      }
+      // get currentTime() {
+      //   return this._currentTime;
+      // }
       
-      get isPlaying() {
-        return this._isPlaying;
-      }
+      // get isPlaying() {
+      //   return this._isPlaying;
+      // }
 
-      _startTimer() {
-        this._stopTimer();
-        this._timer = setInterval(() => {
-          if (this._isPlaying && this._currentTime < this._duration) {
-            this._currentTime += 1;
-            this.trigger(Clappr.Events.PLAYBACK_TIMEUPDATE, {
-              current: this._currentTime,
-              total: this._duration
-            });
+      // _startTimer() {
+      //   this._stopTimer();
+      //   this._timer = setInterval(() => {
+      //     if (this._isPlaying && this._currentTime < this._duration) {
+      //       this._currentTime += 1;
+      //       this.trigger(Clappr.Events.PLAYBACK_TIMEUPDATE, {
+      //         current: this._currentTime,
+      //         total: this._duration
+      //       });
             
-            if (this._currentTime >= this._duration) {
-              this.stop();
-              this.trigger(Clappr.Events.PLAYBACK_ENDED);
-            }
-          }
-        }, 1000);
-      }
+      //       if (this._currentTime >= this._duration) {
+      //         this.stop();
+      //         this.trigger(Clappr.Events.PLAYBACK_ENDED);
+      //       }
+      //     }
+      //   }, 1000);
+      // }
 
-      _stopTimer() {
-        if (this._timer) {
-          clearInterval(this._timer);
-          this._timer = null;
-        }
-      }
+      // _stopTimer() {
+      //   if (this._timer) {
+      //     clearInterval(this._timer);
+      //     this._timer = null;
+      //   }
+      // }
 
-      destroy() {
-        this._stopTimer();
-        if (this._customElement) {
-          this._customElement.remove();
-        }
-        super.destroy();
-      }
+      // destroy() {
+      //   this._stopTimer();
+      //   if (this._customElement) {
+      //     this._customElement.remove();
+      //   }
+      //   super.destroy();
+      // }
     }
+
+    console.log('✅ CustomPlayback class criada:', CustomPlayback);
+    console.log('✅ CustomPlayback.canPlay método:', typeof CustomPlayback.canPlay);
 
     // Inicializar player
     let player;
@@ -205,10 +217,12 @@
     function initPlayer(source) {
       // Destruir player anterior se existir
       if (player) {
+        console.log('🗑️ Destruindo player anterior');
         player.destroy();
       }
 
-      console.log('Inicializando player com source:', source);
+      console.log('🚀 Inicializando player com source:', source);
+      console.log('🔧 Registrando playback plugins:', [CustomPlayback]);
 
       player = new Clappr.Player({
         parentId: '#player-container',
@@ -216,11 +230,14 @@
         playback: {
           controls: true
         },
-        // Registrar nosso playback customizado
-        playbackPlugins: [CustomPlayback],
+        plugins: {
+          playback: [CustomPlayback]
+        },
         height: '100%',
         width: '100%',
       });
+      
+      console.log('✅ Player criado:', player);
     }
 
     function loadCustomFile() {
