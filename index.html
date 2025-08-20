@@ -21,6 +21,18 @@
   <div id="app">
     <h1>Projeto Web com TypeScript</h1>
     <p>Página criada com Vite, TypeScript e SolidJS</p>
+    
+    <div style="margin: 1rem 0;">
+      <label for="url-input">URL do stream:</label>
+      <input 
+        type="text" 
+        id="url-input" 
+        value="http://localhost:4443/demo/bbb.hang"
+        style="width: 400px; padding: 8px; margin: 0 8px;"
+      />
+      <button id="load-stream" style="padding: 8px 16px;">Carregar Stream</button>
+    </div>
+    
     <!-- Elemento hang-watch que será usado pela biblioteca @kixelated/hang -->
     <!-- <hang-watch muted controls latency="100">
       <canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
@@ -31,19 +43,45 @@
   <script type="module">
     import HangPlayback from '/src/hang-playback.js';
 
-    // Clappr.Log.setLevel(0)
-    const player = new Clappr.Player({
-      parentId: '#player-container',
-      source: "http://localhost:4443/demo/bbb.hang",
-      // Register our plugin.  Clappr will call MoqPlayback.canPlay
-      // during startup to select the appropriate playback.
-      plugins: {
-        playback: [ HangPlayback ],
-        // core: [ Clappr.MediaControl ]
-      },
-      // muted: true,
-      height: '100%',
-      width: '100%',
+    let player;
+
+    function createPlayer(source) {
+      // Destroy existing player if it exists
+      if (player) {
+        player.destroy();
+      }
+
+      player = new Clappr.Player({
+        parentId: '#player-container',
+        source: source,
+        plugins: {
+          playback: [ HangPlayback ],
+        },
+        height: '100%',
+        width: '100%',
+      });
+    }
+
+    // Initialize with default URL
+    const urlInput = document.getElementById('url-input');
+    createPlayer(urlInput.value);
+
+    // Add event listener for load button
+    document.getElementById('load-stream').addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (url) {
+        createPlayer(url);
+      }
+    });
+
+    // Allow Enter key to load stream
+    urlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const url = urlInput.value.trim();
+        if (url) {
+          createPlayer(url);
+        }
+      }
     });
   </script>
 </body>
