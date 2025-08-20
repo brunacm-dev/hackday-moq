@@ -31,27 +31,23 @@
   </div>
   <!-- <script type="module" src="/src/main.ts"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
-  <script src="/hang-test/src/hang-playback.js"></script>
-  <script>
-    Clappr.Log.setLevel(0)
+  <!-- <script src="/hang-test/src/hang-playback.js"></script> -->
+  <script type="module">
+    import HangPlayback from '/src/hang-playback.js';
+
+    // Clappr.Log.setLevel(0)
+    // var playerElement = document.getElementById("player-container");
     const player = new Clappr.Player({
       parentId: '#player-container',
       source: "teste.hang",
       // Register our plugin.  Clappr will call MoqPlayback.canPlay
       // during startup to select the appropriate playback.
-      playbackPlugins: [ window.HangPlayback ],
-      // Optional: start muted to avoid autoplay restrictions on some browsers.
+      playbackPlugins: [ HangPlayback ],
       // muted: true,
-      // Additional options for the MoQ plugin.  The canvas size can be
-      // specified here; if omitted the element will fill the player.
-      // moqOptions: {
-      //   width: 640,
-      //   height: 360,
-      // },
-      // Clappr UI customisation
       height: '100%',
       width: '100%',
     });
+    // player.attachTo(playerElement);
   </script>
 </body>
 </html>

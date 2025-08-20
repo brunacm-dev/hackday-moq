@@ -1,6 +1,8 @@
 // import {Playback /*, Log, Events, PlayerError*/} from 'clappr'
 
-import { Playback, Events } from '@clappr/core';
+// import { Playback, Events } from '@clappr/core';
+const { Playback, Events } = Clappr;
+
 // import HangSupport from "@kixelated/hang/support/element";
 // import HangWatch from "@kixelated/hang/watch/element";
 
@@ -10,6 +12,10 @@ export default class HangPlayback extends Playback {
 
   get name() {
     return 'hang_playback';
+  }
+
+  constructor(options) {
+    console.log("HangPlayback constructor called with options:", options);
   }
 
   static canPlay (resource, mimeType = '') { 
