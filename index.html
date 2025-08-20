@@ -1,17 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Clappr MoQ Playback Demo</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projeto TypeScript Web</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<style>
+
     #player-container {
       width: 80vw;
       max-width: 800px;
@@ -19,49 +15,39 @@
       margin-top: 2rem;
     }
   </style>
-</head>
 <body>
-  <h1>Clappr MoQ Playback Demo</h1>
-  <p>
-    This demo showcases a custom Clappr playback plugin that uses
-    <strong>Media&nbsp;over&nbsp;QUIC (MoQ)</strong> to stream live video with
-    extremely low latency.  The plugin inserts a
-    <code>&lt;hang-watch&gt;</code> element into the player and subscribes
-    to a broadcast on a MoQ relay server.
-  </p>
-  <div id="player-container"></div>
-  <!-- Load Clappr from the CDN.  Version 0.11.9 is used here but any
-       recent version should work.  Clappr defines a global `Clappr`
-       namespace that our plugin depends on. -->
-  <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
-  <!-- Load the MoQ playback plugin.  This file defines a global
-       `MoqPlayback` class. -->
-  <script src="./moq_playback.js"></script>
-  <script>
-    // Replace the following with the URL of your MoQ relay and the name
-    // of the broadcast you wish to watch.  The format is:
-    //   moq+hang://{relay-host}/{relay-path}/{broadcast-name}
-    // For example, moq+hang://relay.moq.dev/anon/room123/my-feed
-    const moqUrl = 'moq+hang://relay.moq.dev/anon/example/stream';
+  <hang-support mode="watch" show="partial"></hang-support>
 
+  <div id="app">
+    <h1>Projeto Web com TypeScript</h1>
+    <p>Página criada com Vite, TypeScript e SolidJS</p>
+    
+    <!-- Elemento hang-watch que será usado pela biblioteca @kixelated/hang -->
+    <!-- <hang-watch muted controls latency="100">
+		<canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
+	</hang-watch> -->
+  <div id="player-container"></div>
+
+  </div>
+  <!-- <script type="module" src="/src/main.ts"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
+  <!-- <script src="/hang-test/src/hang-playback.js"></script> -->
+  <script type="module">
+    import HangPlayback from '/src/hang-playback.js';
+
+    // Clappr.Log.setLevel(0)
+    // var playerElement = document.getElementById("player-container");
     const player = new Clappr.Player({
       parentId: '#player-container',
-      source: moqUrl,
+      source: "teste.hang",
       // Register our plugin.  Clappr will call MoqPlayback.canPlay
       // during startup to select the appropriate playback.
-      playbackPlugins: [ window.MoqPlayback ],
-      // Optional: start muted to avoid autoplay restrictions on some browsers.
-      muted: true,
-      // Additional options for the MoQ plugin.  The canvas size can be
-      // specified here; if omitted the element will fill the player.
-      moqOptions: {
-        width: 640,
-        height: 360,
-      },
-      // Clappr UI customisation
+      playbackPlugins: [ HangPlayback ],
+      // muted: true,
       height: '100%',
       width: '100%',
     });
+    // player.attachTo(playerElement);
   </script>
 </body>
 </html>
