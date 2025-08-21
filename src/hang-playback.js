@@ -1,7 +1,6 @@
-const { Playback, Events } = Clappr;
 
 import { Watch } from "@kixelated/hang/watch"
-
+import { Playback, Events } from "@clappr/player";
 
 export default class HangPlayback extends Playback {
 

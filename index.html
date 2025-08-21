@@ -35,9 +35,9 @@
     
     <div id="player-container"></div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
   <script type="module">
     import HangPlayback from '/src/hang-playback.js';
+    import { Player, MediaControl } from '@clappr/player'
 
     // Clappr.Log.setLevel(0)
     let player;
@@ -48,7 +48,7 @@
         player.destroy();
       }
 
-      player = new Clappr.Player({
+      player = new Player({
         parentId: '#player-container',
         source: source,
         mimeType: 'application/quic.hang',
@@ -57,7 +57,7 @@
         },
         plugins: {
           playback: [ HangPlayback ],
-          core: [ Clappr.MediaControl ]
+          core: [ MediaControl ]
         },
         height: '100%',
         width: '100%',
