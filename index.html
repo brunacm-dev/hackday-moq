@@ -33,16 +33,13 @@
       <button id="load-stream" style="padding: 8px 16px;">Carregar Stream</button>
     </div>
     
-    <!-- Elemento hang-watch que será usado pela biblioteca @kixelated/hang -->
-    <!-- <hang-watch muted controls latency="100">
-      <canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
-    </hang-watch> -->
     <div id="player-container"></div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@clappr/player@0.11.9/dist/clappr.min.js"></script>
   <script type="module">
     import HangPlayback from '/src/hang-playback.js';
 
+    Clappr.Log.setLevel(0)
     let player;
 
     function createPlayer(source) {
@@ -54,8 +51,12 @@
       player = new Clappr.Player({
         parentId: '#player-container',
         source: source,
+        playback: {
+          controls: true,
+        },
         plugins: {
           playback: [ HangPlayback ],
+          core: [ Clappr.MediaControl ]
         },
         height: '100%',
         width: '100%',
