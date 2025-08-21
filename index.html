@@ -39,7 +39,7 @@
   <script type="module">
     import HangPlayback from '/src/hang-playback.js';
 
-    Clappr.Log.setLevel(0)
+    // Clappr.Log.setLevel(0)
     let player;
 
     function createPlayer(source) {
@@ -51,6 +51,7 @@
       player = new Clappr.Player({
         parentId: '#player-container',
         source: source,
+        mimeType: 'application/quic.hang',
         playback: {
           controls: true,
         },

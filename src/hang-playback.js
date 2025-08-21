@@ -1,8 +1,7 @@
 const { Playback, Events } = Clappr;
 
-import HangWatch from "@kixelated/hang/watch/element";
+import { Watch } from "@kixelated/hang/watch"
 
-export { HangWatch};
 
 export default class HangPlayback extends Playback {
 
@@ -10,21 +9,9 @@ export default class HangPlayback extends Playback {
     return 'hang_playback';
   }
 
-  _ensureCustomElementRegistered() {
-    try {
-      if (!customElements.get('hang-watch')) {
-        customElements.define('hang-watch', HangWatch);
-      }
-    } catch (error) {
-      console.error('Erro ao registrar custom element (hang-watch):', error);
-    }
-  }
-
   constructor(options) {
     super(options);
-    console.log("HangPlayback constructor called with options:", options);
     this.configure(options);
-
     setTimeout(() => {
       this.trigger(Events.PLAYBACK_READY);
 
@@ -39,8 +26,6 @@ export default class HangPlayback extends Playback {
       this.trigger(Events.PLAYBACK_SETTINGSUPDATE);
       if (this.state.autoPlay) this.play();
     }, 0);
-
-    this._ensureCustomElementRegistered();
   }
 
   configure(options) {
@@ -58,14 +43,16 @@ export default class HangPlayback extends Playback {
     console.log("HangPlayback load called with src:", src);
     this.state.currentStatus = "LOADING";
     this.options.source = src;
-    this._hang.setAttribute('url', src);
+    console.log("HangPlayback setting connection URL to:", src);
+    this._watch.connection.url.set(new URL(src));
     this.trigger(Events.PLAYBACK_LOADED, this.name);
   }
 
 
   static canPlay (resource, mimeType = '') { 
-    console.log("canPlay:", resource.endsWith('.hang'))
-    return resource.endsWith('.hang');
+    console.log("canPlay source:", resource.endsWith('.hang'))
+    console.log("canPlay mimeType:", mimeType === 'application/quic.hang')
+    return resource.endsWith('.hang') || mimeType === 'application/quic.hang';
   }
   
 
@@ -74,13 +61,15 @@ export default class HangPlayback extends Playback {
     this.el.style.height = '100%';
    
     this.el.innerHTML = `
-      <hang-watch url="" muted latency="100">
-        <canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
-      </hang-watch>
+      <canvas style="max-width: 100%; height: auto; border-radius: 4px; margin: 0 auto;"></canvas>
     `;
-
-    this._hang = this.el.querySelector('hang-watch');
-
+    
+    // Get the canvas element from the DOM after setting innerHTML
+    const canvas = this.el.querySelector('canvas');
+    
+    this._watch = new Watch({ video: { canvas }, broadcast: { path: "" } });
+    this.load(this.options.source);
+    this.pause();
     return this;
   }
 
@@ -101,29 +90,32 @@ export default class HangPlayback extends Playback {
   }
 
   getPlaybackType() {
-    // return Playback.VOD;
+    return Playback.LIVE;
   }
 
   play() {
     if (!this.isPlaying()) {
-      console.log("HangPlayback play called");
+      if (this.state.currentStatus === "STOPPED") {
+        this.load(this.options.source);
+        return;
+      }
+      this._watch.video.paused.set(false);
+      this._watch.audio.paused.set(false);
       this.state.currentStatus = "PLAYING";
-      this._hang.setAttribute('url', this.options.source);
       this.trigger(Events.PLAYBACK_PLAY);
     }
   }
 
   pause() {
-    console.log("HangPlayback pause called");
     this.state.currentStatus = "PAUSED";
-    this._hang.setAttribute('url', '');
+    this._watch.video.paused.set(true);
+    this._watch.audio.paused.set(true);
     this.trigger(Events.PLAYBACK_PAUSE);
   }
 
   stop() {
-    console.log("HangPlayback stop called");
     this.state.currentStatus = "STOPPED";
-    this._hang.setAttribute('url', '');
+    this._watch.connection.url.set(undefined);
     this.trigger(Events.PLAYBACK_STOP);
   }
 
@@ -139,12 +131,14 @@ export default class HangPlayback extends Playback {
   }
 
   volume(value) {
-    this._hang.setAttribute('volume', value / 100);
+    const newVolume = value ? value / 100 : 0.5;
+    this._watch.audio.volume.set(newVolume);
   }
 
 
   destroy() {
     super.destroy();
     this.stop();
+    this._watch.close()
   }
 }
