@@ -54,6 +54,20 @@ export default class HangPlayback extends Playback {
     console.log("canPlay mimeType:", mimeType === 'application/quic.hang')
     return resource.endsWith('.hang') || mimeType === 'application/quic.hang';
   }
+
+  mute() {
+    if (this.state.mute) return;
+    this.state.mute = true;
+    this._watch.audio.muted.set(true);
+    this.trigger(Events.PLAYBACK_MUTE);
+  }
+
+  unmute() {
+    if (!this.state.mute) return;
+    this.state.mute = true;
+    this._watch.audio.muted.set(true);
+    this.trigger(Events.PLAYBACK_MUTE);
+  }
   
 
   render() {
@@ -70,7 +84,44 @@ export default class HangPlayback extends Playback {
     this._watch = new Watch({ video: { canvas }, broadcast: { path: "" } });
     this.load(this.options.source);
     this.pause();
+
+    this.setStateListeners();
+    this._watch.broadcast.status.subscribe((status) => {
+      console.log("############### Broadcast status changed:", status);
+      // You can react to "offline", "loading", or "live" here
+    });
+
+    if (this._frameMonitor) clearInterval(this._frameMonitor);
+    let lastFrameId = null;
+    this._frameMonitor = setInterval(() => {
+      const frame = this._watch?.video?.source?.frame;
+      const frameId = frame && (frame.timestamp || frame.id || JSON.stringify(frame));
+      if (lastFrameId !== null && frameId === lastFrameId && this.state.currentStatus === "PLAYING") {
+        console.warn("Video frame not updating: possible freeze");
+        // Optionally, trigger a UI update or reconnection here
+      }
+      lastFrameId = frameId;
+    }, 1000); // check every second
     return this;
+  }
+
+  setStateListeners() {
+    this._watch.broadcast.status.subscribe((status) => {
+      console.log("############### Broadcast status changed:", status);
+      // You can react to "offline", "loading", or "live" here
+    });
+
+    if (this._frameMonitor) clearInterval(this._frameMonitor);
+    let lastFrameId = null;
+    this._frameMonitor = setInterval(() => {
+      const frame = this._watch?.video?.source?.frame;
+      const frameId = frame && (frame.timestamp || frame.id || JSON.stringify(frame));
+      if (lastFrameId !== null && frameId === lastFrameId && this.state.currentStatus === "PLAYING") {
+        console.warn("Video frame not updating: possible freeze");
+        // Optionally, trigger a UI update or reconnection here
+      }
+      lastFrameId = frameId;
+    }, 1000); // check every second
   }
 
   get isReady() {
@@ -132,6 +183,11 @@ export default class HangPlayback extends Playback {
 
   volume(value) {
     const newVolume = value ? value / 100 : 0.5;
+    if (newVolume === 0.0) {
+      this.mute()
+    } else {
+      this.unmute()
+    }
     this._watch.audio.volume.set(newVolume);
   }
 
