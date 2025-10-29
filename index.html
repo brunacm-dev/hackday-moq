@@ -37,6 +37,7 @@
   </div>
   <script type="module">
     import HangPlayback from '/src/hang-playback.js';
+    import ShowTime from '/src/show-time.js';
     import { Player, MediaControl } from '@clappr/player'
 
     // Clappr.Log.setLevel(0)
@@ -57,7 +58,7 @@
         },
         plugins: {
           playback: [ HangPlayback ],
-          core: [ MediaControl ]
+          core: [ MediaControl, ShowTime ]
         },
         height: '100%',
         width: '100%',

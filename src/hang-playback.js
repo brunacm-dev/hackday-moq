@@ -1,13 +1,6 @@
 import { Watch } from "@kixelated/hang/watch"
 import { Playback, Events } from "@clappr/player";
 
-/**
- * TODOS:
- * - observe watch.broadcast.status for connection status so that we 
- *   can update playback status accordingly
- * - volume control stopped working after this refactor
- */
-
 export default class HangPlayback extends Playback {
   get name() { return 'hang_playback'; }
 
@@ -27,9 +20,36 @@ export default class HangPlayback extends Playback {
     return this._currentStatus === "PLAYING";
   }
 
+  // 🕒 Duração total (caso disponível)
   getDuration() {
     return this._duration || 0;
   }
+
+  // 🔢 Converte "HH:MM:SS:FF" para segundos
+_timecodeToSeconds(timecode) {
+  if (!timecode || typeof timecode !== "string") return 0;
+  const parts = timecode.split(":").map(Number);
+  if (parts.length < 3) return 0;
+
+  const [hours, minutes, seconds, frames] = parts;
+  return (hours * 3600) + (minutes * 60) + seconds + ((frames || 0) / 30); // assume 30 fps
+}
+
+
+  // 🕒 Tempo atual do vídeo (extraído do frame)
+  getCurrentTime() {
+  const frame = this._watch?.video?.source?.frame;
+  console.log("Frame timestamp:", this._watch?.video?.source?.frame?.timestamp);
+
+  if (!frame || !frame.timestamp) return 0;
+
+  if (typeof frame.timestamp === "number") {
+    return frame.timestamp / 1000;
+  }
+
+  // caso seja string tipo "09:14:10:55"
+  return this._timecodeToSeconds(frame.timestamp);
+}
 
   getPlaybackType() {
     return Playback.LIVE;
@@ -42,6 +62,7 @@ export default class HangPlayback extends Playback {
     this._duration = options.playback?.duration || 100;
     this._autoPlay = !!options.autoPlay;
     this._muted = !!options.mute;
+    this._fps = 30; // FPS padrão, será detectado automaticamente se possível
 
     this.settings = {
       default: ["seekbar"],
@@ -52,6 +73,8 @@ export default class HangPlayback extends Playback {
 
     this.trigger(Events.PLAYBACK_READY);
     if (this._autoPlay) this.play();
+    
+
   }
 
   render() {
@@ -123,6 +146,18 @@ export default class HangPlayback extends Playback {
     this._watch.audio.volume.set(newVolume);
   }
 
+  // 🔍 Tenta detectar FPS do vídeo
+  _detectFPS() {
+    // Tenta obter informações do vídeo para detectar FPS
+    const videoInfo = this._watch?.video?.source;
+    if (videoInfo && videoInfo.fps) {
+      this._fps = videoInfo.fps;
+      console.log(`FPS detectado: ${this._fps}`);
+    } else {
+      // Mantém FPS padrão se não conseguir detectar
+      console.log(`Usando FPS padrão: ${this._fps}`);
+    }
+  }
 
   destroy() {
     super.destroy();
@@ -131,16 +166,40 @@ export default class HangPlayback extends Playback {
     if (this._frameMonitor) clearInterval(this._frameMonitor);
   }
 
-  _setupFrameMonitor() {
-    if (this._frameMonitor) clearInterval(this._frameMonitor);
-    let lastFrameId = null;
-    this._frameMonitor = setInterval(() => {
-      const frame = this._watch?.video?.source?.frame;
-      const frameId = frame && (frame.timestamp || frame.id || JSON.stringify(frame));
-      if (lastFrameId !== null && frameId === lastFrameId && this._currentStatus === "PLAYING") {
-        console.warn("Video frame not updating: possible freeze");
-      }
-      lastFrameId = frameId;
-    }, 1000);
-  }
+  // 🔁 Atualiza frames e envia tempo para o Clappr
+ _setupFrameMonitor() {
+  if (this._frameMonitor) clearInterval(this._frameMonitor);
+  let lastFrameId = null;
+  let fpsDetected = false;
+
+  this._frameMonitor = setInterval(() => {
+    const frame = this._watch?.video?.source?.frame;
+    if (!frame) return;
+
+    // Detecta FPS apenas uma vez
+    if (!fpsDetected) {
+      this._detectFPS();
+      fpsDetected = true;
+    }
+
+    const frameId = frame.timestamp || frame.id || JSON.stringify(frame);
+
+    // ✅ Converte timestamp (ms) → segundos
+    const currentTime = frame.timestamp ? frame.timestamp / 1000 : 0;
+
+    // 🚀 Emite o evento que atualiza a barra de tempo e posição do player
+    this.trigger(Events.PLAYBACK_TIMEUPDATE, {
+      current: currentTime,
+      total: this.getDuration(),
+    });
+
+
+    // ⚠️ Aviso se congelar frame
+    if (lastFrameId !== null && frameId === lastFrameId && this._currentStatus === "PLAYING") {
+      console.warn("Video frame not updating: possible freeze");
+    }
+
+    lastFrameId = frameId;
+  }, 500); // Atualiza a cada 0.5s
+}
 }
